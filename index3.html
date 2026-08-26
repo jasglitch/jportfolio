@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>JASMINE QUEST: Press Start</title>
+<meta name="description" content="A tiny retro RPG through Jasmine Sahoo's product career, told in order.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f2e7;
+    --paper-deep:#e9dcb8;
+    --field-a:#f3ead0;
+    --field-b:#ecdfb9;
+    --ink:#23201a;
+    --line:#c9b98c;
+    --accent:#a9622f;
+    --sage:#8f9c7c;
+    --blue:#7f97a3;
+    --blush:#c2917f;
+    --gold:#bf9a4e;
+    --skin:#e3bd8f;
+    --hp:#8f9c7c;
+    --pixel:'Press Start 2P', monospace;
+    --term:'VT323', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; overflow:hidden; background:var(--ink);}
+  body{font-family:var(--term); -webkit-font-smoothing:none;}
+  svg{display:block; shape-rendering:crispEdges;}
+  button{font-family:inherit; cursor:pointer;}
+
+  /* ================= STAGE ================= */
+  .stage{position:relative; width:100%; height:100%; overflow:hidden; background:var(--field-b);}
+  #world{position:absolute; top:0; left:0; will-change:transform;}
+  .field{position:absolute; top:0; left:0; background:repeating-conic-gradient(var(--field-a) 0% 25%, var(--field-b) 0% 50%) 0 0/44px 44px;}
+  #roadSvg{position:absolute; top:0; left:0;}
+
+  .start-flag{position:absolute; transform:translate(-50%,-100%); z-index:3; text-align:center;}
+  .start-flag .pole{width:3px; height:56px; background:var(--ink); margin:0 auto;}
+  .start-flag .banner{font-family:var(--pixel); font-size:8px; background:var(--sage); color:var(--paper); border:2px solid var(--ink); padding:4px 8px; margin-bottom:-4px;}
+
+  /* ================= COINS ================= */
+  .coin{position:absolute; width:18px; height:18px; transform:translate(-50%,-50%); z-index:2; transition:opacity .25s ease, transform .25s ease;}
+  .coin-body{width:100%; height:100%; border-radius:50%; background:var(--gold); border:2px solid var(--ink); position:relative; animation:coinspin 1.6s linear infinite;}
+  .coin-body::after{content:''; position:absolute; top:3px; left:5px; width:5px; height:5px; background:#fff6da; border-radius:50%;}
+  @keyframes coinspin{0%,100%{transform:scaleX(1);}50%{transform:scaleX(0.25);}}
+  .coin.collected{opacity:0; transform:translate(-50%,-50%) scale(0.2) translateY(-14px); pointer-events:none;}
+
+  /* ================= STATIONS ================= */
+  .station{position:absolute; transform:translate(-50%,-100%); display:flex; flex-direction:column; align-items:center; cursor:pointer; z-index:4;}
+  .quest-flag{font-family:var(--pixel); font-size:9px; color:var(--paper); background:var(--accent); border:2px solid var(--ink); padding:2px 5px; margin-bottom:4px; animation:bounce 1s ease-in-out infinite;}
+  .station.visited .quest-flag{display:none;}
+  .station-star{display:none; font-family:var(--pixel); font-size:10px; color:var(--gold); margin-bottom:4px;}
+  .station.visited .station-star{display:block;}
+  @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+  .signpost{width:48px; height:48px; background:var(--paper); border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink); display:flex; align-items:center; justify-content:center;}
+  .station.visited .signpost{background:var(--paper-deep);}
+  .signpost svg{width:21px; height:21px; color:var(--ink);}
+  .signpost-pole{width:3px; height:14px; background:var(--ink);}
+  .station-order{position:absolute; top:-8px; left:-8px; width:18px; height:18px; background:var(--ink); color:var(--paper); font-family:var(--pixel); font-size:8px; display:flex; align-items:center; justify-content:center; border:2px solid var(--paper);}
+  .station-label{font-family:var(--pixel); font-size:7px; margin-top:8px; text-align:center; color:var(--ink); line-height:1.6; max-width:84px; background:var(--paper); padding:2px 5px; border:1px solid var(--line);}
+
+  .finale-gate{position:absolute; transform:translate(-50%,-100%); display:flex; flex-direction:column; align-items:center; cursor:pointer; z-index:4;}
+  .gate-arch{width:70px; height:78px; background:var(--ink); border:3px solid var(--ink); display:flex; align-items:center; justify-content:center; box-shadow:5px 5px 0 var(--accent); position:relative;}
+  .gate-arch svg{width:28px; height:28px; color:var(--paper);}
+  .gate-arch::before{content:''; position:absolute; inset:6px; border:2px dashed var(--gold); animation:gateglow 1.4s ease-in-out infinite;}
+  @keyframes gateglow{0%,100%{opacity:.4;}50%{opacity:1;}}
+  .gate-label{font-family:var(--pixel); font-size:8px; margin-top:10px; color:var(--accent); text-align:center; background:var(--paper); border:2px solid var(--ink); padding:5px 9px;}
+
+  /* ================= CHARACTER ================= */
+  #character{position:absolute; width:32px; height:38px; transform:translate(-50%,-100%); z-index:5;}
+  .char-flip{width:100%; height:100%; transition:transform .08s linear;}
+  .char-shadow{position:absolute; bottom:1px; left:50%; transform:translateX(-50%); width:20px; height:5px; background:rgba(35,32,26,0.22); border-radius:50%;}
+
+  /* ================= HUD ================= */
+  .hud{position:fixed; top:14px; left:14px; right:14px; z-index:50; display:flex; justify-content:space-between; align-items:flex-start; font-family:var(--pixel); pointer-events:none;}
+  .hud > *{pointer-events:auto;}
+  .stat-box{background:var(--paper); border:3px solid var(--ink); box-shadow:4px 4px 0 var(--ink); padding:10px 14px; min-width:210px;}
+  .stat-row1{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .stat-name{font-size:9px; letter-spacing:1px;}
+  .stat-lv{font-size:9px; color:var(--accent);}
+  .xp-bar-outer{height:10px; border:2px solid var(--ink); background:#fff; padding:1px;}
+  .xp-bar-inner{height:100%; background:var(--hp); width:0%; transition:width .5s steps(6);}
+  .stat-sub{font-size:7px; margin-top:6px; color:var(--ink); opacity:.75; letter-spacing:0.5px; display:flex; justify-content:space-between; gap:8px;}
+
+  .top-right{display:flex; flex-direction:column; align-items:flex-end; gap:8px;}
+  .pixel-btn{background:var(--paper); border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink); padding:8px 12px; font-size:9px; text-decoration:none; color:var(--ink); letter-spacing:0.5px; white-space:nowrap;}
+  .pixel-btn:active{box-shadow:1px 1px 0 var(--ink); transform:translate(2px,2px);}
+  .pixel-btn.small{font-size:8px; padding:6px 10px;}
+  .pixel-btn.loud{background:var(--accent); color:var(--paper);}
+
+  /* ================= START HINT ================= */
+  .start-hint{position:fixed; left:50%; bottom:120px; transform:translateX(-50%); z-index:30; font-family:var(--pixel); text-align:center; transition:opacity .4s ease;}
+  .start-hint .keys{display:flex; gap:6px; justify-content:center; margin-bottom:10px;}
+  .kcap{width:30px; height:30px; background:var(--paper); border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink); display:flex; align-items:center; justify-content:center; font-size:12px; animation:kpulse 1.4s ease-in-out infinite;}
+  .kcap:nth-child(2){animation-delay:.2s;}
+  @keyframes kpulse{0%,100%{opacity:.35;}50%{opacity:1;}}
+  .start-hint p{font-size:8px; color:var(--ink); letter-spacing:0.5px; text-shadow:2px 2px 0 var(--paper);}
+  .start-hint.hidden{opacity:0; pointer-events:none;}
+
+  /* ================= LEVEL UP ================= */
+  .levelup{position:fixed; top:38%; left:50%; transform:translate(-50%,-50%) scale(0.6); z-index:70; opacity:0; pointer-events:none; transition:all .25s cubic-bezier(.2,1.6,.4,1); font-family:var(--pixel); text-align:center;}
+  .levelup.show{opacity:1; transform:translate(-50%,-50%) scale(1);}
+  .levelup-box{background:var(--gold); border:4px solid var(--ink); box-shadow:6px 6px 0 var(--ink); padding:20px 30px;}
+  .levelup-title{font-size:16px; color:var(--ink); margin-bottom:8px; letter-spacing:1px;}
+  .levelup-sub{font-size:9px; color:var(--ink);}
+
+  /* ================= COIN TOAST ================= */
+  .coin-toast{position:fixed; top:90px; left:50%; transform:translate(-50%,-8px); z-index:55; opacity:0; pointer-events:none; transition:all .3s ease; font-family:var(--pixel); font-size:9px; background:var(--gold); border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink); padding:8px 14px; color:var(--ink);}
+  .coin-toast.show{opacity:1; transform:translate(-50%,0);}
+
+  /* ================= TOUCH CONTROLS ================= */
+  .touch-controls{position:fixed; bottom:24px; left:0; right:0; z-index:35; display:flex; justify-content:space-between; padding:0 20px; pointer-events:none;}
+  .touch-btn{pointer-events:auto; width:56px; height:56px; background:var(--paper); border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink); display:flex; align-items:center; justify-content:center; color:var(--ink); -webkit-tap-highlight-color:transparent;}
+  .touch-btn:active{background:var(--accent); box-shadow:1px 1px 0 var(--ink); transform:translate(2px,2px);}
+  .touch-btn svg{width:20px; height:20px;}
+
+  /* ================= DIALOGUE BOX ================= */
+  .dialogue{position:fixed; left:50%; bottom:0; transform:translate(-50%, 110%); width:min(720px, 94vw); z-index:65; transition:transform .3s ease;}
+  .dialogue.show{transform:translate(-50%, -18px);}
+  .dbox{background:var(--paper); border:4px solid var(--ink); box-shadow:6px 6px 0 var(--ink); padding:20px 24px 16px; min-height:130px; position:relative; cursor:pointer;}
+  .dname{position:absolute; top:-18px; left:20px; background:var(--accent); color:var(--paper); font-family:var(--pixel); font-size:9px; padding:6px 12px; border:3px solid var(--ink);}
+  .dtext{font-family:var(--term); font-size:23px; line-height:1.35; color:var(--ink); min-height:64px;}
+  .dfoot{display:flex; justify-content:space-between; align-items:center; margin-top:10px;}
+  .dpage{font-family:var(--pixel); font-size:7px; color:var(--ink); opacity:.55;}
+  .dcontinue{font-family:var(--pixel); font-size:11px; color:var(--accent); animation:blink 0.9s steps(1) infinite;}
+  @keyframes blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+  .dactions{display:none; gap:10px; margin-top:14px; flex-wrap:wrap;}
+  .dactions.show{display:flex;}
+  .daction-btn{font-family:var(--pixel); font-size:10px; background:var(--ink); color:var(--paper); border:3px solid var(--ink); padding:12px 18px; text-decoration:none;}
+  .daction-btn:active{transform:translate(2px,2px);}
+  .daction-btn.ghost{background:var(--paper); color:var(--ink); font-size:9px; padding:11px 16px;}
+  .daction-btn.loud{background:var(--accent); box-shadow:4px 4px 0 var(--ink);}
+
+  .scanlines{position:fixed; inset:0; z-index:80; pointer-events:none; background:repeating-linear-gradient(to bottom, rgba(35,32,26,0.05) 0 1px, transparent 1px 3px); mix-blend-mode:multiply;}
+
+  @media (max-width:640px){
+    .stat-box{min-width:150px; padding:8px 10px;}
+    .stat-name{font-size:8px;} .stat-lv{font-size:8px;}
+    .pixel-btn{font-size:8px; padding:7px 9px;}
+    .dtext{font-size:20px;}
+    .station-label{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div id="world">
+    <div class="field" id="fieldBg"></div>
+    <svg id="roadSvg"><path id="roadPathInk" fill="none" stroke="var(--ink)" stroke-width="38" stroke-linecap="round"/><path id="roadPathFill" fill="none" stroke="var(--paper)" stroke-width="30" stroke-linecap="round"/></svg>
+
+    <div class="start-flag" id="startFlag">
+      <div class="banner">START</div>
+      <div class="pole"></div>
+    </div>
+
+    <div id="coinsLayer"></div>
+    <div id="stationsLayer"></div>
+
+    <div class="finale-gate" id="finaleGate">
+      <div class="gate-arch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="gate-label">FULL<br>PORTFOLIO</div>
+    </div>
+
+    <div id="character">
+      <div class="char-flip">
+        <svg viewBox="0 0 16 18" width="34" height="38" id="charSvg">
+          <rect x="4" y="0" width="8" height="3" fill="var(--ink)"/>
+          <rect x="5" y="3" width="6" height="3" fill="var(--skin)"/>
+          <rect x="3" y="6" width="10" height="5" fill="var(--accent)"/>
+          <rect x="2" y="7" width="2" height="3" fill="var(--sage)"/>
+          <g id="legsA">
+            <rect x="4" y="11" width="3" height="5" fill="var(--ink)"/>
+            <rect x="9" y="11" width="3" height="5" fill="var(--ink)"/>
+          </g>
+          <g id="legsB" style="display:none;">
+            <rect x="3" y="11" width="3" height="4" fill="var(--ink)"/>
+            <rect x="9" y="11" width="3" height="6" fill="var(--ink)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="char-shadow"></div>
+    </div>
+  </div>
+</div>
+
+<div class="hud">
+  <div class="stat-box">
+    <div class="stat-row1">
+      <div class="stat-name">JASMINE</div>
+      <div class="stat-lv" id="lvText">LV.1</div>
+    </div>
+    <div class="xp-bar-outer"><div class="xp-bar-inner" id="xpBar"></div></div>
+    <div class="stat-sub">
+      <span id="questSub">0/6 CHAPTERS</span>
+      <span id="coinSub">0/20 COINS</span>
+    </div>
+  </div>
+  <div class="top-right">
+    <a class="pixel-btn loud" href="index.html">FULL SITE &#9654;</a>
+    <button class="pixel-btn small" id="resetBtn">NEW GAME</button>
+  </div>
+</div>
+
+<div class="start-hint" id="startHint">
+  <div class="keys"><div class="kcap">&larr;</div><div class="kcap">&rarr;</div></div>
+  <p>WALK RIGHT.<br>SIX CHAPTERS, IN ORDER.</p>
+</div>
+
+<div class="touch-controls">
+  <div class="touch-btn" id="btnLeft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+  <div class="touch-btn" id="btnRight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+</div>
+
+<div class="levelup" id="levelup">
+  <div class="levelup-box">
+    <div class="levelup-title">LEVEL UP!</div>
+    <div class="levelup-sub" id="levelupSub">LV.2 REACHED</div>
+  </div>
+</div>
+
+<div class="coin-toast" id="coinToast">+10 COIN!</div>
+
+<div class="dialogue" id="dialogue">
+  <div class="dbox" id="dbox">
+    <div class="dname" id="dname">GUIDE</div>
+    <div class="dtext" id="dtext"></div>
+    <div class="dfoot">
+      <div class="dpage" id="dpage">1/2</div>
+      <div class="dcontinue" id="dcontinue">&#9660;</div>
+    </div>
+    <div class="dactions" id="dactions"></div>
+  </div>
+</div>
+
+<div class="scanlines"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ICONS = {
+    gear:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>',
+    shield:'<path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z"/>',
+    leaf:'<path d="M4 20c0-9 6-15 15-15 0 9-6 15-15 15z"/><path d="M4 20c3-3 7-6 11-9"/>',
+    road:'<path d="M8 3L4 21M16 3l4 18M12 4v2M12 9v2M12 14v2M12 19v1"/>',
+    compass:'<circle cx="12" cy="12" r="9"/><path d="M15 9l-2 6-6 2 2-6 6-2z"/>',
+    pulse:'<path d="M3 12h4l2-6 4 12 2-6h6"/>'
+  };
+
+  /* ---------- WAVE PATH (chronological, left to right) ---------- */
+  var WORLD_W = 3300, WORLD_H = 720;
+  var BASE_Y = 400, AMPLITUDE = 130, WAVELENGTH = 820;
+  function waveY(x){ return BASE_Y + AMPLITUDE * Math.sin((x / WAVELENGTH) * Math.PI * 2); }
+  function waveSlope(x){ return AMPLITUDE * (2*Math.PI/WAVELENGTH) * Math.cos((x/WAVELENGTH)*Math.PI*2); }
+
+  var START_X = 90;
+  var FINALE_X = 3140;
+
+  var STATIONS = [
+    { id:'foundations', x:460, icon:'gear', color:'var(--sage)', short:'LG & IBM',
+      name:'1 · ENGINEERING FOUNDATIONS', pages:[
+        '2013–16. Before product, there was code, and the patience to debug someone else’s.',
+        'Automated 1,000+ test cases at LG. 100% defect-free QA at IBM. +50 XP.' ] },
+    { id:'scale', x:940, icon:'shield', color:'var(--blue)', short:'Microsoft',
+      name:'2 · SCALE & TRUST', pages:[
+        '2018–22. Enterprise scale taught me trust is a feature you design for.',
+        'Activation 6%→11% for Family Safety, across 5 platforms. GDPR & COPPA shipped. +50 XP.' ] },
+    { id:'speed', x:1420, icon:'leaf', color:'var(--gold)', short:'Fraazo',
+      name:'3 · SPEED & ACCESS', pages:[
+        '2022. Quick commerce moves fast, every call was a bet made in days.',
+        'Conversion 5.7%→9.1%. Forecasting accuracy 54%→95%. +50 XP.' ] },
+    { id:'motion', x:1900, icon:'road', color:'var(--blush)', short:'redBus',
+      name:'4 · CONFIDENCE & MOTION', pages:[
+        '2022–24. Booking a ride is a small act of trust. I spent two years earning it.',
+        'Pre-booking drop-off cut 12%. Owned the full rYde roadmap. +50 XP.' ] },
+    { id:'range', x:2380, icon:'compass', color:'var(--sage)', short:'Consulting',
+      name:'5 · RANGE & REACH', pages:[
+        '2023–24. Startups taught me to build fast, with almost nothing.',
+        'Insurance processing 12→4 days. Shipped AI + no-code for global teams. +50 XP.' ] },
+    { id:'habit', x:2860, icon:'pulse', color:'var(--accent)', short:'FITPASS',
+      name:'6 · HABIT & HEALTH', pages:[
+        '2025–26. This is where it comes together: growth, retention, health.',
+        '96% lift in attended sessions. 19% stickiness. 21% ARPU growth. +50 XP.' ] }
+  ];
+  STATIONS.forEach(function(st, i){ st.y = waveY(st.x); st.order = i+1; });
+
+  var COINS = [];
+  var markers = [START_X].concat(STATIONS.map(function(s){return s.x;})).concat([FINALE_X]);
+  for(var m=0; m<markers.length-1; m++){
+    var a = markers[m], b = markers[m+1];
+    var segLen = b - a;
+    var count = Math.max(1, Math.round(segLen / 180) - 1);
+    for(var k=1; k<=count; k++){
+      var x = a + (segLen * k/(count+1));
+      COINS.push({ id:'coin-'+m+'-'+k, x:x, y:waveY(x) });
+    }
+  }
+
+  var STATION_RADIUS = 44;
+  var COIN_RADIUS = 26;
+  var SPEED = 3.6;
+  var TOTAL_COINS = COINS.length;
+
+  var STORAGE_KEY = 'jasmineRPG_v4';
+  var state = { stations:{}, coins:{} };
+  try{
+    var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if(saved && saved.stations) state = saved;
+  }catch(e){}
+  var visited = state.stations || {};
+  var collected = state.coins || {};
+
+  var keys = {ArrowLeft:false, ArrowRight:false};
+  var charX = START_X;
+  var facing = 1;
+  var walking = false;
+  var frameTick = 0, walkFrame = false;
+  var paused = false;
+  var hasMoved = false;
+  var finaleShown = false;
+
+  var stage = document.querySelector('.stage');
+  var world = document.getElementById('world');
+  var fieldBg = document.getElementById('fieldBg');
+  var roadSvg = document.getElementById('roadSvg');
+  var roadInk = document.getElementById('roadPathInk');
+  var roadFill = document.getElementById('roadPathFill');
+  var coinsLayer = document.getElementById('coinsLayer');
+  var stationsLayer = document.getElementById('stationsLayer');
+  var character = document.getElementById('character');
+  var legsA = document.getElementById('legsA');
+  var legsB = document.getElementById('legsB');
+  var startHint = document.getElementById('startHint');
+  var startFlag = document.getElementById('startFlag');
+  var finaleGate = document.getElementById('finaleGate');
+  var lvText = document.getElementById('lvText');
+  var xpBar = document.getElementById('xpBar');
+  var questSub = document.getElementById('questSub');
+  var coinSub = document.getElementById('coinSub');
+  var resetBtn = document.getElementById('resetBtn');
+  var levelup = document.getElementById('levelup');
+  var levelupSub = document.getElementById('levelupSub');
+  var coinToast = document.getElementById('coinToast');
+
+  var dialogue = document.getElementById('dialogue');
+  var dbox = document.getElementById('dbox');
+  var dname = document.getElementById('dname');
+  var dtext = document.getElementById('dtext');
+  var dpage = document.getElementById('dpage');
+  var dcontinue = document.getElementById('dcontinue');
+  var dactions = document.getElementById('dactions');
+
+  world.style.width = WORLD_W + 'px';
+  world.style.height = WORLD_H + 'px';
+  fieldBg.style.width = WORLD_W + 'px';
+  fieldBg.style.height = WORLD_H + 'px';
+  roadSvg.setAttribute('width', WORLD_W);
+  roadSvg.setAttribute('height', WORLD_H);
+  roadSvg.setAttribute('viewBox', '0 0 ' + WORLD_W + ' ' + WORLD_H);
+
+  /* build smooth road path string */
+  var d = 'M ' + START_X + ' ' + waveY(START_X);
+  for(var x = START_X; x <= FINALE_X + 20; x += 16){
+    d += ' L ' + x.toFixed(1) + ' ' + waveY(x).toFixed(1);
+  }
+  roadInk.setAttribute('d', d);
+  roadFill.setAttribute('d', d);
+
+  startFlag.style.left = START_X + 'px';
+  startFlag.style.top = waveY(START_X) + 'px';
+  finaleGate.style.left = FINALE_X + 'px';
+  finaleGate.style.top = waveY(FINALE_X) + 'px';
+
+  /* stations */
+  STATIONS.forEach(function(st){
+    var el = document.createElement('div');
+    el.className = 'station' + (visited[st.id] ? ' visited' : '');
+    el.style.left = st.x + 'px';
+    el.style.top = st.y + 'px';
+    el.dataset.id = st.id;
+    el.innerHTML =
+      '<div class="quest-flag">!</div>' +
+      '<div class="station-star">&#9733;</div>' +
+      '<div class="signpost"><div class="station-order">'+st.order+'</div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+ICONS[st.icon]+'</svg></div>' +
+      '<div class="signpost-pole"></div>' +
+      '<div class="station-label">'+st.short+'</div>';
+    el.addEventListener('click', function(){ startEncounter(st); });
+    stationsLayer.appendChild(el);
+  });
+
+  /* coins */
+  COINS.forEach(function(c){
+    var el = document.createElement('div');
+    el.className = 'coin' + (collected[c.id] ? ' collected' : '');
+    el.style.left = c.x + 'px';
+    el.style.top = c.y + 'px';
+    el.dataset.id = c.id;
+    el.innerHTML = '<div class="coin-body"></div>';
+    coinsLayer.appendChild(el);
+  });
+
+  function totalVisited(){ return Object.keys(visited).filter(function(k){return visited[k];}).length; }
+  function totalCoins(){ return Object.keys(collected).filter(function(k){return collected[k];}).length; }
+
+  function updateHUD(){
+    var n = totalVisited(), c = totalCoins();
+    var lv = Math.min(6, n) + 1;
+    lvText.textContent = 'LV.' + Math.min(lv, 6);
+    xpBar.style.width = (n/6*100) + '%';
+    questSub.textContent = n + '/6 CHAPTERS';
+    coinSub.textContent = c + '/' + TOTAL_COINS + ' COINS';
+    STATIONS.forEach(function(st){
+      var marker = stationsLayer.querySelector('.station[data-id="'+st.id+'"]');
+      if(marker) marker.classList.toggle('visited', !!visited[st.id]);
+    });
+  }
+  updateHUD();
+
+  function saveProgress(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({stations:visited, coins:collected})); }catch(e){}
+  }
+
+  resetBtn.addEventListener('click', function(){
+    visited = {}; collected = {}; saveProgress(); updateHUD();
+    document.querySelectorAll('.coin').forEach(function(el){ el.classList.remove('collected'); });
+    charX = START_X; finaleShown = false; closeDialogue();
+  });
+
+  function tryCollectCoins(){
+    COINS.forEach(function(c){
+      if(collected[c.id]) return;
+      if(Math.abs(charX - c.x) < COIN_RADIUS){
+        collected[c.id] = true;
+        saveProgress();
+        var el = coinsLayer.querySelector('.coin[data-id="'+c.id+'"]');
+        if(el) el.classList.add('collected');
+        updateHUD();
+        showCoinToast();
+      }
+    });
+  }
+  var coinToastTimer = null;
+  function showCoinToast(){
+    coinToast.textContent = '+10 COIN! (' + totalCoins() + '/' + TOTAL_COINS + ')';
+    coinToast.classList.add('show');
+    clearTimeout(coinToastTimer);
+    coinToastTimer = setTimeout(function(){ coinToast.classList.remove('show'); }, 900);
+  }
+
+  function flashLevelUp(newLv, cb){
+    levelupSub.textContent = 'LV.' + newLv + ' REACHED';
+    levelup.classList.add('show');
+    paused = true;
+    setTimeout(function(){
+      levelup.classList.remove('show');
+      setTimeout(cb, 200);
+    }, 950);
+  }
+
+  var dQueue = [], dIndex = 0, typing = false, typeTimer = null, onFinishDialogue = null;
+
+  function startEncounter(st){
+    var already = !!visited[st.id];
+    if(!already){
+      visited[st.id] = true; saveProgress();
+      var n = totalVisited();
+      updateHUD();
+      flashLevelUp(Math.min(n,6), function(){
+        openDialogue(st.name, st.pages, function(){ paused = false; });
+      });
+    } else {
+      paused = true;
+      openDialogue(st.name, st.pages, function(){ paused = false; });
+    }
+  }
+
+  function openDialogue(name, pages, onDone){
+    dQueue = pages; dIndex = 0;
+    dname.textContent = name;
+    dactions.classList.remove('show'); dactions.innerHTML = '';
+    dbox.onclick = advanceDialogue;
+    onFinishDialogue = onDone;
+    dialogue.classList.add('show');
+    paused = true;
+    showPage();
+  }
+
+  function showPage(){
+    var text = dQueue[dIndex];
+    dpage.textContent = (dIndex+1) + '/' + dQueue.length;
+    dtext.textContent = '';
+    typing = true;
+    dcontinue.style.visibility = 'hidden';
+    var i = 0;
+    clearInterval(typeTimer);
+    typeTimer = setInterval(function(){
+      dtext.textContent = text.slice(0, i+1);
+      i++;
+      if(i >= text.length){
+        clearInterval(typeTimer);
+        typing = false;
+        dcontinue.style.visibility = 'visible';
+      }
+    }, 18);
+  }
+
+  function advanceDialogue(){
+    if(typing){
+      clearInterval(typeTimer);
+      dtext.textContent = dQueue[dIndex];
+      typing = false;
+      dcontinue.style.visibility = 'visible';
+      return;
+    }
+    dIndex++;
+    if(dIndex < dQueue.length){
+      showPage();
+    } else {
+      closeDialogue();
+      if(onFinishDialogue) onFinishDialogue();
+    }
+  }
+
+  function closeDialogue(){
+    dialogue.classList.remove('show');
+    clearInterval(typeTimer);
+  }
+
+  function openFinale(){
+    paused = true;
+    dQueue = ['You’ve reached today. Ten years, six chapters, one throughline: products that turn intent into habit.', 'Ready to see the rest? Step through to the full portfolio.'];
+    dIndex = 0;
+    dname.textContent = 'QUEST COMPLETE';
+    dialogue.classList.add('show');
+    dbox.onclick = advanceOrFinish;
+    showFinalePage();
+  }
+
+  function showFinalePage(){
+    var text = dQueue[dIndex];
+    dpage.textContent = (dIndex+1) + '/' + dQueue.length;
+    dtext.textContent = ''; typing = true;
+    dcontinue.style.visibility = 'hidden';
+    dactions.classList.remove('show');
+    var i = 0;
+    clearInterval(typeTimer);
+    typeTimer = setInterval(function(){
+      dtext.textContent = text.slice(0,i+1); i++;
+      if(i>=text.length){
+        clearInterval(typeTimer);
+        typing = false;
+        dcontinue.style.visibility='visible';
+        if(dIndex === dQueue.length-1){
+          dactions.classList.add('show');
+          dactions.innerHTML =
+            '<a class="daction-btn loud" href="index.html">ENTER FULL PORTFOLIO &#9654;</a>' +
+            '<a class="daction-btn ghost" href="mailto:jasminesahoo39@gmail.com">EMAIL</a>' +
+            '<a class="daction-btn ghost" href="https://linkedin.com/in/jasmine-sahoo-iimc" target="_blank" rel="noopener">LINKEDIN</a>';
+        }
+      }
+    }, 18);
+  }
+
+  function advanceOrFinish(){
+    if(typing){
+      clearInterval(typeTimer);
+      dtext.textContent = dQueue[dIndex];
+      typing = false;
+      dcontinue.style.visibility = 'visible';
+      if(dIndex === dQueue.length-1){
+        dactions.classList.add('show');
+        dactions.innerHTML =
+          '<a class="daction-btn loud" href="index.html">ENTER FULL PORTFOLIO &#9654;</a>' +
+          '<a class="daction-btn ghost" href="mailto:jasminesahoo39@gmail.com">EMAIL</a>' +
+          '<a class="daction-btn ghost" href="https://linkedin.com/in/jasmine-sahoo-iimc" target="_blank" rel="noopener">LINKEDIN</a>';
+      }
+      return;
+    }
+    if(dIndex < dQueue.length-1){
+      dIndex++;
+      showFinalePage();
+    }
+  }
+
+  window.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
+      keys[e.key] = true; e.preventDefault();
+      if(!hasMoved){ hasMoved = true; startHint.classList.add('hidden'); }
+    }
+    if((e.key === 'Enter' || e.key === ' ') && dialogue.classList.contains('show')){
+      e.preventDefault();
+      if(dbox.onclick) dbox.onclick();
+    }
+  });
+  window.addEventListener('keyup', function(e){
+    if(e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ keys[e.key] = false; }
+  });
+
+  function bindTouch(id, key){
+    var el = document.getElementById(id);
+    function set(v){ return function(ev){ ev.preventDefault(); keys[key]=v; if(v && !hasMoved){hasMoved=true; startHint.classList.add('hidden');} }; }
+    el.addEventListener('pointerdown', set(true));
+    el.addEventListener('pointerup', set(false));
+    el.addEventListener('pointerleave', set(false));
+    el.addEventListener('pointercancel', set(false));
+  }
+  bindTouch('btnLeft','ArrowLeft');
+  bindTouch('btnRight','ArrowRight');
+
+  function update(){
+    if(!paused){
+      var moving = false;
+      if(keys.ArrowRight){ charX += SPEED; facing = 1; moving = true; }
+      else if(keys.ArrowLeft){ charX -= SPEED; facing = -1; moving = true; }
+      charX = Math.max(START_X-20, Math.min(FINALE_X+40, charX));
+      walking = moving;
+
+      if(walking){
+        frameTick++;
+        if(frameTick % 8 === 0){
+          walkFrame = !walkFrame;
+          legsA.style.display = walkFrame ? 'none' : 'block';
+          legsB.style.display = walkFrame ? 'block' : 'none';
+        }
+      } else {
+        legsA.style.display = 'block'; legsB.style.display = 'none';
+      }
+
+      tryCollectCoins();
+
+      for(var i=0;i<STATIONS.length;i++){
+        var st = STATIONS[i];
+        if(!visited[st.id] && Math.abs(charX - st.x) < STATION_RADIUS){
+          startEncounter(st);
+          break;
+        }
+      }
+      if(!finaleShown && charX > FINALE_X - 36){
+        finaleShown = true;
+        openFinale();
+      }
+    }
+
+    var charY = waveY(charX);
+    var slope = waveSlope(charX);
+    var tilt = Math.max(-14, Math.min(14, -slope * 6));
+
+    var viewW = stage.clientWidth, viewH = stage.clientHeight;
+    var camX = Math.max(0, Math.min(WORLD_W - viewW, charX - viewW/2));
+    var camY = Math.max(0, Math.min(WORLD_H - viewH, charY - viewH/2));
+    if(WORLD_H < viewH) camY = -(viewH - WORLD_H)/2;
+    world.style.transform = 'translate(' + (-camX) + 'px,' + (-camY) + 'px)';
+    character.style.left = charX + 'px';
+    character.style.top = charY + 'px';
+    character.querySelector('.char-flip').style.transform = 'scaleX(' + facing + ') rotate(' + (tilt*facing) + 'deg)';
+
+    requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+
+})();
+</script>
+
+</body>
+</html>
