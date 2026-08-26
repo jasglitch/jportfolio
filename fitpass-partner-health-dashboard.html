@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FITPASS Partner Health Dashboard, Internal</title>
+<style>
+  :root{
+    --ink:#1c2027; --muted:#6b7280; --border:#e5e7eb; --bg:#f7f8fa; --card:#ffffff;
+    --a:#c0392b; --a-bg:#fdecea; --b:#b7791f; --b-bg:#fef6e7;
+    --c:#2f6f4e; --c-bg:#eaf6ef; --d:#4a6fa5; --d-bg:#eaf1fb;
+    --e:#6b7280; --e-bg:#f1f2f4; --accent:#2c4a68;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .topbar{ background:var(--card); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; }
+  .brand{ font-weight:700; font-size:1rem; }
+  .brand span{ color:var(--accent); }
+  .user-chip{ font-size:0.82rem; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  .avatar{ width:26px;height:26px;border-radius:50%; background:var(--accent);color:#fff; display:flex;align-items:center;justify-content:center; font-size:0.7rem; font-weight:700; }
+
+  .container{ max-width:1180px; margin:0 auto; padding:24px 28px 64px; }
+  .header-row{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:18px; flex-wrap:wrap; gap:14px; }
+  h1{ font-size:1.35rem; margin:0 0 4px; font-weight:700; }
+  .subtitle{ color:var(--muted); font-size:0.85rem; margin:0; }
+
+  .filters{ display:flex; gap:10px; flex-wrap:wrap; position:relative; }
+  .filter{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:0.82rem; color:var(--ink); display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none; position:relative; }
+  .filter:hover{ border-color:var(--accent); }
+  .filter .chev{ color:var(--muted); font-size:0.7rem; transition:transform .15s; }
+  .filter.open .chev{ transform:rotate(180deg); }
+
+  .dropdown{
+    position:absolute; top:calc(100% + 6px); left:0; background:var(--card);
+    border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.08);
+    min-width:220px; max-height:280px; overflow-y:auto; z-index:20; display:none; padding:6px;
+  }
+  .dropdown.show{ display:block; }
+  .dd-item{ padding:8px 10px; border-radius:6px; font-size:0.82rem; cursor:pointer; display:flex; align-items:center; gap:8px; }
+  .dd-item:hover{ background:var(--bg); }
+  .dd-item input{ pointer-events:none; }
+  .dd-more{ padding:8px 10px; font-size:0.78rem; color:var(--accent); font-weight:600; cursor:pointer; border-top:1px solid var(--border); margin-top:4px; }
+  .dd-search{ width:100%; border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:0.8rem; margin-bottom:6px; }
+
+  .summary-panel{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:18px 20px; margin-bottom:20px;
+  }
+  .summary-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;}
+  .summary-title{ font-weight:700; font-size:0.92rem; }
+  .summary-overall{ font-size:0.82rem; color:var(--muted); }
+  .summary-overall b{ color:var(--a); }
+  .how-flagging-link{ font-size:0.8rem; color:var(--accent); font-weight:600; text-decoration:none; cursor:pointer; white-space:nowrap; }
+  .how-flagging-link:hover{ text-decoration:underline; }
+  .stat-count-label{ font-size:0.68rem; font-weight:400; color:var(--muted); }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+  .stat-card{ border:1px solid var(--border); border-radius:10px; padding:14px 16px; cursor:pointer; transition:box-shadow .15s, border-color .15s; }
+  .stat-card:hover{ box-shadow:0 4px 14px rgba(0,0,0,0.06); border-color:var(--accent); }
+  .stat-card.active{ border-color:var(--accent); box-shadow:0 0 0 2px rgba(44,74,104,0.12); }
+  .stat-tier{ font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px; display:inline-block; padding:2px 8px; border-radius:20px; }
+  .stat-count{ font-size:1.4rem; font-weight:700; margin:2px 0; }
+  .stat-flag{ font-size:0.76rem; color:var(--muted); }
+  .stat-flag b{ font-weight:700; }
+  .stat-bar-track{ height:5px; background:var(--bg); border-radius:4px; margin-top:8px; overflow:hidden; }
+  .stat-bar-fill{ height:100%; border-radius:4px; }
+
+  .tier-a .stat-tier{ background:var(--a-bg); color:var(--a); }
+  .tier-b .stat-tier{ background:var(--b-bg); color:var(--b); }
+  .tier-c .stat-tier{ background:var(--c-bg); color:var(--c); }
+  .tier-d .stat-tier{ background:var(--d-bg); color:var(--d); }
+  .tier-e .stat-tier{ background:var(--e-bg); color:var(--e); }
+
+  .panel{ background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .panel-head{ padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  .panel-title{ font-weight:700; font-size:0.95rem; }
+  .panel-sub{ font-size:0.78rem; color:var(--muted); margin-top:2px; }
+  .clear-filters{ font-size:0.78rem; color:var(--accent); cursor:pointer; font-weight:600; }
+
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:left; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); padding:10px 20px; border-bottom:1px solid var(--border); font-weight:600; }
+  td{ padding:13px 20px; border-bottom:1px solid var(--border); font-size:0.85rem; vertical-align:middle; }
+  tr:last-child td{ border-bottom:none; }
+
+  .tier-badge{ font-size:0.7rem; font-weight:700; padding:2px 9px; border-radius:20px; }
+  .partner-name{ font-weight:600; }
+  .partner-city{ color:var(--muted); font-size:0.78rem; }
+  .signal-tag{ display:inline-block; font-size:0.72rem; background:var(--a-bg); color:var(--a); padding:2px 8px; border-radius:6px; margin:1px 3px 1px 0; }
+  .status-pill{ font-size:0.72rem; font-weight:600; padding:3px 10px; border-radius:20px; display:inline-block; cursor:pointer; border:none; }
+  .status-unclaimed{ background:#fdecea; color:#c0392b; }
+  .status-claimed{ background:#fef6e7; color:#b7791f; }
+  .status-resolved{ background:#eaf6ef; color:#2f6f4e; }
+  .action-link{ color:var(--accent); font-size:0.8rem; font-weight:600; text-decoration:none; cursor:pointer; background:none; border:none; padding:0; }
+
+  .footer-note{ margin-top:18px; font-size:0.78rem; color:var(--muted); text-align:center; }
+
+  .overlay{ position:fixed; inset:0; background:rgba(20,22,26,0.35); display:none; z-index:40; }
+  .overlay.show{ display:block; }
+  .slideover{
+    position:fixed; top:0; right:-420px; width:400px; height:100%; background:var(--card);
+    box-shadow:-8px 0 30px rgba(0,0,0,0.12); z-index:50; transition:right .2s ease; overflow-y:auto;
+  }
+  .slideover.show{ right:0; }
+  .so-head{ padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; }
+  .so-close{ background:none; border:none; font-size:1.1rem; color:var(--muted); cursor:pointer; }
+  .so-body{ padding:20px 24px; }
+  .so-name{ font-weight:700; font-size:1.05rem; }
+  .so-meta{ font-size:0.8rem; color:var(--muted); margin-top:2px; }
+  .so-section{ margin-top:20px; }
+  .so-label{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); font-weight:700; margin-bottom:8px; }
+  .so-signal{ font-size:0.85rem; margin-bottom:6px; }
+  .so-actions{ display:flex; flex-direction:column; gap:8px; margin-top:18px; }
+  .so-btn{ padding:10px 14px; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--card); text-align:left; }
+  .so-btn.primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .so-btn:hover{ border-color:var(--accent); }
+  .so-note{ width:100%; border:1px solid var(--border); border-radius:8px; padding:10px; font-size:0.83rem; font-family:inherit; margin-top:6px; resize:vertical; min-height:60px; }
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px);
+    background:var(--ink); color:#fff; padding:10px 20px; border-radius:8px; font-size:0.85rem;
+    z-index:60; transition:transform .2s ease; opacity:0;
+  }
+  .toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+
+  /* How flagging works, full page overlay */
+  .frd-page{
+    position:fixed; inset:0; background:var(--bg); z-index:70;
+    display:none; overflow-y:auto;
+  }
+  .frd-page.show{ display:block; }
+  .frd-topbar{
+    background:var(--card); border-bottom:1px solid var(--border); padding:14px 28px;
+    display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5;
+  }
+  .frd-back{ font-size:0.85rem; color:var(--accent); font-weight:600; cursor:pointer; background:none; border:none; display:flex; align-items:center; gap:6px; }
+  .frd-container{ max-width:820px; margin:0 auto; padding:36px 28px 80px; }
+  .frd-container h1{ font-size:1.5rem; margin:0 0 4px; }
+  .frd-container h2{ font-size:1.05rem; margin:32px 0 12px; padding-top:8px; border-top:1px solid var(--border); }
+  .frd-container h2:first-of-type{ border-top:none; padding-top:0; }
+  .frd-container h3{ font-size:0.92rem; margin:18px 0 8px; color:var(--accent); }
+  .frd-meta{ font-size:0.82rem; color:var(--muted); margin-bottom:24px; }
+  .frd-container p, .frd-container li{ font-size:0.88rem; line-height:1.65; color:#333; }
+  .frd-container table{ width:100%; border-collapse:collapse; margin:14px 0 20px; font-size:0.82rem; }
+  .frd-container th{ text-align:left; background:#f1f2f4; padding:8px 12px; border:1px solid var(--border); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.03em; color:var(--muted); }
+  .frd-container td{ padding:9px 12px; border:1px solid var(--border); vertical-align:top; }
+  .frd-container ul{ padding-left:20px; }
+  .frd-note{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px 18px; margin:16px 0; font-size:0.85rem; }
+  .frd-note.open-item{ border-color:var(--b); background:var(--b-bg); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">FIT<span>PASS</span> · Partner Health</div>
+  <div class="user-chip"><div class="avatar">RK</div> Ravi Kumar · Bengaluru City Head</div>
+</div>
+
+<div class="container">
+
+  <div class="header-row">
+    <div>
+      <h1>Partner Health & Churn Risk</h1>
+      <p class="subtitle" id="subtitleText">Monthly flag cycle · Aug 2026 · Showing Bengaluru, all tiers</p>
+    </div>
+    <div class="filters">
+      <div class="filter" id="cityFilterBtn">City: <span id="cityLabel">Bengaluru</span> <span class="chev">▾</span>
+        <div class="dropdown" id="cityDropdown">
+          <input class="dd-search" id="citySearch" placeholder="Search city..." onclick="event.stopPropagation()">
+          <div id="cityList"></div>
+          <div class="dd-more" id="cityShowMore">Show 10 more cities</div>
+        </div>
+      </div>
+      <div class="filter" id="tierFilterBtn">Tier: <span id="tierLabel">All</span> <span class="chev">▾</span>
+        <div class="dropdown" id="tierDropdown">
+          <div class="dd-item" data-tier="all"><input type="checkbox" checked> All tiers</div>
+          <div class="dd-item" data-tier="A"><input type="checkbox" checked> Tier A</div>
+          <div class="dd-item" data-tier="B"><input type="checkbox" checked> Tier B</div>
+          <div class="dd-item" data-tier="C"><input type="checkbox" checked> Tier C</div>
+          <div class="dd-item" data-tier="D"><input type="checkbox" checked> Tier D</div>
+          <div class="dd-item" data-tier="E"><input type="checkbox" checked> Tier E</div>
+        </div>
+      </div>
+      <div class="filter" id="statusFilterBtn">Status: <span id="statusLabel">All</span> <span class="chev">▾</span>
+        <div class="dropdown" id="statusDropdown">
+          <div class="dd-item" data-status="all">All statuses</div>
+          <div class="dd-item" data-status="unclaimed">Unclaimed</div>
+          <div class="dd-item" data-status="claimed">Claimed</div>
+          <div class="dd-item" data-status="resolved">Resolved</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-panel">
+    <div class="summary-top">
+      <div class="summary-title" id="summaryTitle">Bengaluru Partner Network Summary</div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div class="summary-overall">935 total partners · <b>90 flagged as at risk (9.6%)</b> · 845 stable</div>
+        <a class="how-flagging-link" id="howFlaggingLink">How flagging works? →</a>
+      </div>
+    </div>
+    <div class="stat-row" id="statRow">
+      <div class="stat-card tier-a" data-tier="A">
+        <span class="stat-tier">Tier A</span>
+        <div class="stat-count">86 <span class="stat-count-label">total</span></div>
+        <div class="stat-flag"><b>7</b> flagged at risk · 8.1%</div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:8.1%;background:var(--a);"></div></div>
+      </div>
+      <div class="stat-card tier-b" data-tier="B">
+        <span class="stat-tier">Tier B</span>
+        <div class="stat-count">214 <span class="stat-count-label">total</span></div>
+        <div class="stat-flag"><b>19</b> flagged at risk · 8.9%</div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:8.9%;background:var(--b);"></div></div>
+      </div>
+      <div class="stat-card tier-c" data-tier="C">
+        <span class="stat-tier">Tier C</span>
+        <div class="stat-count">340 <span class="stat-count-label">total</span></div>
+        <div class="stat-flag"><b>28</b> flagged at risk · 8.2%</div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:8.2%;background:var(--c);"></div></div>
+      </div>
+      <div class="stat-card tier-d" data-tier="D">
+        <span class="stat-tier">Tier D</span>
+        <div class="stat-count">198 <span class="stat-count-label">total</span></div>
+        <div class="stat-flag"><b>22</b> flagged at risk · 11.1%</div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:11.1%;background:var(--d);"></div></div>
+      </div>
+      <div class="stat-card tier-e" data-tier="E">
+        <span class="stat-tier">Tier E</span>
+        <div class="stat-count">97 <span class="stat-count-label">total</span></div>
+        <div class="stat-flag"><b>14</b> flagged at risk · 14.4%</div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:14.4%;background:var(--e);"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Flagged Partners, <span id="panelCityLabel">Bengaluru</span></div>
+        <div class="panel-sub" id="panelSubLabel">90 partners at risk this cycle · sorted by tier, then risk severity</div>
+      </div>
+      <div class="clear-filters" id="clearFilters">Clear filters</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Partner</th><th>Tier</th><th>Signals</th><th>Payout trend</th><th>Status</th><th>Action</th></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <p class="footer-note">Status updates here sync automatically to CRM</p>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="slideover" id="slideover">
+  <div class="so-head">
+    <div>
+      <div class="so-name" id="soName">Fitline Strength Co.</div>
+      <div class="so-meta" id="soMeta">Indiranagar, Bengaluru · Tier A</div>
+    </div>
+    <button class="so-close" id="soClose">✕</button>
+  </div>
+  <div class="so-body">
+    <div class="so-section">
+      <div class="so-label">Why it's flagged</div>
+      <div class="so-signal" id="soSignal1">Utilization down 41% vs. 3-month baseline</div>
+      <div class="so-signal" id="soSignal2">Payout −₹38,400 month over month</div>
+    </div>
+    <div class="so-section">
+      <div class="so-label">Contact</div>
+      <div class="so-signal" id="soContact">Suresh Nair · +91 98450 XXXXX</div>
+    </div>
+    <div class="so-section">
+      <div class="so-label">Log outreach</div>
+      <textarea class="so-note" id="soNote" placeholder="Add a note about this call or visit..."></textarea>
+    </div>
+    <div class="so-actions">
+      <button class="so-btn primary" id="markContacted">Mark as Claimed & Contacted</button>
+      <button class="so-btn" id="markResolved">Mark as Resolved</button>
+      <button class="so-btn" id="escalate">Escalate to Manager</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="frd-page" id="frdPage">
+  <div class="frd-topbar">
+    <button class="frd-back" id="frdBack">← Back to dashboard</button>
+    <div style="font-size:0.82rem; color:var(--muted);">Functional Requirements · Sensing & Reasoning</div>
+  </div>
+  <div class="frd-container">
+    <h1>How Flagging Works</h1>
+    <div class="frd-meta">Partner Health & Churn Early Warning System · Sensing & Reasoning Layers</div>
+
+    <h2>1. What the system watches</h2>
+    <p>Every partner is scored monthly using four signal categories:</p>
+    <table>
+      <tr><th>Signal</th><th>What it means</th><th>Why it matters</th></tr>
+      <tr><td><b>Slots listed</b></td><td>Bookable slots the partner has made available this cycle</td><td>Often the first sign of disengagement, before payout even moves</td></tr>
+      <tr><td><b>Slots booked</b></td><td>Listed slots actually booked by users</td><td>Utilization rate = booked ÷ listed. Low utilization can be a partner or a demand problem</td></tr>
+      <tr><td><b>Attendance confirmed</b></td><td>Bookings that converted to a real check-in</td><td>Separates "booked but ghosted" from real usage</td></tr>
+      <tr><td><b>Payout per cycle</b></td><td>Amount paid to the partner, and its trend over 3 cycles</td><td>The commercial signal, ties directly to why a partner stays or leaves</td></tr>
+    </table>
+    <p>From these, the system derives utilization rate, attendance rate, payout trend, listing trend, and a city demand index used to tell partner-specific decline apart from a market-wide dip.</p>
+
+    <h2>2. How a partner gets flagged</h2>
+    <h3>Step 1: Detection</h3>
+    <p>A partner is provisionally flagged if any of these hold, measured against their own trailing 3-month baseline, not a fleet-wide average:</p>
+    <ul>
+      <li>Utilization rate down more than 25%</li>
+      <li>Payout declining for 2 or more consecutive cycles</li>
+      <li>Slots listed down more than 20%</li>
+    </ul>
+    <h3>Step 2: Verification</h3>
+    <p>Before a human ever sees it, each flag is checked against context:</p>
+    <ul>
+      <li><b>City demand check:</b> if the whole city softened this cycle, the flag is annotated as "city softness" rather than escalated as a partner problem</li>
+      <li><b>Persistence check:</b> a one-cycle dip is logged, not escalated, unless it repeats or the partner is Tier A/B</li>
+      <li><b>Confidence score:</b> high, medium, or low, based on how many signals fired together</li>
+    </ul>
+
+    <h2>3. How partners are tiered A–E</h2>
+    <p>Tiering combines two inputs: <b>payout per slot</b> (commercial value) and <b>city demand density</b> (is this a high or low demand market). A high payout-per-slot partner in a quiet city carries different risk than the same partner in a saturated metro, so both are weighed together rather than payout alone.</p>
+    <div class="frd-note open-item"><b>Open input:</b> exact tier boundaries (what payout-per-slot range defines Tier A vs. B, etc.) require real FITPASS payout data before this ships. Not fabricated for this mock.</div>
+
+    <h2>4. What's deliberately out of scope, v1</h2>
+    <p><b>No ML churn scoring.</b> Detection is rule-based against trailing baselines. This keeps it explainable and doesn't require a data science build to ship.</p>
+    <p><b>No adaptive/self-learning thresholds.</b> The monthly before/after check, did contacted partners recover, is a human-reviewed comparison. If thresholds need adjusting, a PM or analyst does it manually. This is a deliberate scope cut for v1, not a gap.</p>
+  </div>
+</div>
+
+<script>
+const cities = ["Bengaluru","Mumbai","Delhi NCR","Hyderabad","Chennai","Pune","Kolkata","Ahmedabad","Jaipur","Lucknow",
+  "Indore","Chandigarh","Kochi","Coimbatore","Nagpur","Surat","Bhopal","Patna","Guwahati","Vadodara"];
+let cityShown = 10;
+let selectedCity = "Bengaluru";
+let selectedTiers = new Set(["A","B","C","D","E"]);
+let selectedStatus = "all";
+
+const partners = [
+  {name:"Fitline Strength Co.", area:"Indiranagar", tier:"A", signals:["Utilization ↓ 41%","Slots listed ↓"], payout:"−₹38,400 MoM", status:"unclaimed", owner:"Suresh Nair · +91 98450 XXXXX", detail:["Utilization down 41% vs. 3-month baseline","Slots listed dropped for 2 consecutive months"]},
+  {name:"Yogpath Wellness Studio", area:"HSR Layout", tier:"A", signals:["Payout ↓ 2 mo. straight"], payout:"−₹22,100 MoM", status:"claimed", owner:"Meera Iyer · +91 98867 XXXXX", detail:["Payout declining for 2 consecutive months","Attendance confirmation rate stable, likely pricing or scheduling issue"]},
+  {name:"CourtSide Multiplayer Arena", area:"Whitefield", tier:"B", signals:["Utilization ↓ 33%"], payout:"−₹14,600 MoM", status:"unclaimed", owner:"Arjun Das · +91 99001 XXXXX", detail:["Utilization down 33% vs. baseline","City demand pool stable, so this is partner-specific"]},
+  {name:"Pilates Room Bengaluru", area:"Koramangala", tier:"B", signals:["Slots listed ↓ 3 mo."], payout:"−₹9,800 MoM", status:"resolved", owner:"Divya Menon · +91 98220 XXXXX", detail:["Slots listed declined over 3 months","Recovered after outreach, listings back to baseline"]},
+  {name:"PowerZone Gym", area:"JP Nagar", tier:"C", signals:["Utilization ↓ 28%"], payout:"−₹5,200 MoM", status:"unclaimed", owner:"Karthik Rao · +91 97401 XXXXX", detail:["Utilization down 28% vs. baseline"]},
+  {name:"FlexFit Studio", area:"Marathahalli", tier:"C", signals:["Payout ↓ 1 mo."], payout:"−₹3,100 MoM", status:"unclaimed", owner:"Nisha Prabhu · +91 96322 XXXXX", detail:["First month of payout decline, early signal"]},
+  {name:"Ace Badminton Court", area:"Electronic City", tier:"D", signals:["Utilization ↓ 22%"], payout:"−₹2,400 MoM", status:"claimed", owner:"Manoj Bhat · +91 95004 XXXXX", detail:["Utilization down 22%, city demand also softening this month"]},
+  {name:"CoreStrength Studio", area:"Banashankari", tier:"E", signals:["Slots listed ↓"], payout:"−₹1,100 MoM", status:"unclaimed", owner:"Priya Shetty · +91 94812 XXXXX", detail:["Slots listed reduced by half, low base volume partner"]},
+];
+
+function renderCityList(filter=""){
+  const list = document.getElementById('cityList');
+  const filtered = cities.filter(c => c.toLowerCase().includes(filter.toLowerCase()));
+  const toShow = filtered.slice(0, cityShown);
+  list.innerHTML = toShow.map(c => `<div class="dd-item" data-city="${c}">${c === selectedCity ? '✓' : ''} ${c}</div>`).join('');
+  document.getElementById('cityShowMore').style.display = filtered.length > cityShown ? 'block' : 'none';
+  list.querySelectorAll('.dd-item').forEach(item=>{
+    item.onclick = (e)=>{
+      e.stopPropagation();
+      selectedCity = item.dataset.city;
+      document.getElementById('cityLabel').textContent = selectedCity;
+      document.getElementById('panelCityLabel').textContent = selectedCity;
+      document.getElementById('summaryTitle').textContent = selectedCity + ' Partner Network Summary';
+      closeAllDropdowns();
+      showToast(`Filtered to ${selectedCity}`);
+      renderCityList(document.getElementById('citySearch').value);
+    };
+  });
+}
+
+document.getElementById('citySearch').addEventListener('input', (e)=> renderCityList(e.target.value));
+document.getElementById('cityShowMore').onclick = (e)=>{ e.stopPropagation(); cityShown += 10; renderCityList(document.getElementById('citySearch').value); };
+
+function closeAllDropdowns(){
+  document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('show'));
+  document.querySelectorAll('.filter').forEach(f=>f.classList.remove('open'));
+}
+
+document.getElementById('cityFilterBtn').addEventListener('click', function(e){
+  e.stopPropagation();
+  const dd = document.getElementById('cityDropdown');
+  const willOpen = !dd.classList.contains('show');
+  closeAllDropdowns();
+  if(willOpen){ dd.classList.add('show'); this.classList.add('open'); }
+});
+document.getElementById('tierFilterBtn').addEventListener('click', function(e){
+  e.stopPropagation();
+  const dd = document.getElementById('tierDropdown');
+  const willOpen = !dd.classList.contains('show');
+  closeAllDropdowns();
+  if(willOpen){ dd.classList.add('show'); this.classList.add('open'); }
+});
+document.getElementById('statusFilterBtn').addEventListener('click', function(e){
+  e.stopPropagation();
+  const dd = document.getElementById('statusDropdown');
+  const willOpen = !dd.classList.contains('show');
+  closeAllDropdowns();
+  if(willOpen){ dd.classList.add('show'); this.classList.add('open'); }
+});
+document.addEventListener('click', closeAllDropdowns);
+document.querySelectorAll('.dropdown').forEach(d=>d.addEventListener('click', e=>e.stopPropagation()));
+
+document.querySelectorAll('#tierDropdown .dd-item').forEach(item=>{
+  item.onclick = (e)=>{
+    e.stopPropagation();
+    const t = item.dataset.tier;
+    if(t === 'all'){
+      const allChecked = selectedTiers.size === 5;
+      selectedTiers = allChecked ? new Set() : new Set(["A","B","C","D","E"]);
+    } else {
+      if(selectedTiers.has(t)) selectedTiers.delete(t); else selectedTiers.add(t);
+    }
+    document.querySelectorAll('#tierDropdown .dd-item').forEach(i=>{
+      const it = i.dataset.tier;
+      i.querySelector('input').checked = it === 'all' ? selectedTiers.size===5 : selectedTiers.has(it);
+    });
+    document.getElementById('tierLabel').textContent = selectedTiers.size===5 ? 'All' : (selectedTiers.size===0 ? 'None' : [...selectedTiers].join(', '));
+    renderTable();
+    highlightStatCards();
+  };
+});
+
+document.querySelectorAll('#statusDropdown .dd-item').forEach(item=>{
+  item.onclick = (e)=>{
+    e.stopPropagation();
+    selectedStatus = item.dataset.status;
+    document.getElementById('statusLabel').textContent = item.textContent.trim();
+    closeAllDropdowns();
+    renderTable();
+  };
+});
+
+document.querySelectorAll('.stat-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    const t = card.dataset.tier;
+    selectedTiers = new Set([t]);
+    document.getElementById('tierLabel').textContent = t;
+    document.querySelectorAll('#tierDropdown .dd-item').forEach(i=>{
+      i.querySelector('input').checked = i.dataset.tier === t;
+    });
+    highlightStatCards();
+    renderTable();
+    showToast(`Showing Tier ${t} only`);
+  });
+});
+function highlightStatCards(){
+  document.querySelectorAll('.stat-card').forEach(c=>{
+    c.classList.toggle('active', selectedTiers.size===1 && selectedTiers.has(c.dataset.tier));
+  });
+}
+
+document.getElementById('clearFilters').onclick = ()=>{
+  selectedTiers = new Set(["A","B","C","D","E"]);
+  selectedStatus = "all";
+  document.getElementById('tierLabel').textContent = 'All';
+  document.getElementById('statusLabel').textContent = 'All';
+  document.querySelectorAll('#tierDropdown .dd-item input').forEach(i=>i.checked=true);
+  document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active'));
+  renderTable();
+  showToast('Filters cleared');
+};
+
+const tierColors = {A:['var(--a-bg)','var(--a)'],B:['var(--b-bg)','var(--b)'],C:['var(--c-bg)','var(--c)'],D:['var(--d-bg)','var(--d)'],E:['var(--e-bg)','var(--e)']};
+const statusClass = {unclaimed:'status-unclaimed',claimed:'status-claimed',resolved:'status-resolved'};
+const statusLabelText = {unclaimed:'Unclaimed',claimed:'Claimed',resolved:'Resolved'};
+
+function renderTable(){
+  const body = document.getElementById('tableBody');
+  const filtered = partners.filter(p => selectedTiers.has(p.tier) && (selectedStatus==='all' || p.status===selectedStatus));
+  body.innerHTML = filtered.map((p)=>`
+    <tr>
+      <td><div class="partner-name">${p.name}</div><div class="partner-city">${p.area}</div></td>
+      <td><span class="tier-badge" style="background:${tierColors[p.tier][0]};color:${tierColors[p.tier][1]};">${p.tier}</span></td>
+      <td>${p.signals.map(s=>`<span class="signal-tag">${s}</span>`).join('')}</td>
+      <td>${p.payout}</td>
+      <td><button class="status-pill ${statusClass[p.status]}" data-idx="${partners.indexOf(p)}">${statusLabelText[p.status]}${p.status==='claimed' ? ' · '+p.owner.split(' · ')[0] : ''}</button></td>
+      <td><button class="action-link" data-idx="${partners.indexOf(p)}">${p.status==='unclaimed' ? 'Claim →' : 'Open →'}</button></td>
+    </tr>
+  `).join('');
+  document.getElementById('panelSubLabel').textContent = `${filtered.length} partners at risk this cycle · sorted by tier, then risk severity`;
+  body.querySelectorAll('.action-link').forEach(btn=>{
+    btn.onclick = ()=> openSlideover(partners[btn.dataset.idx]);
+  });
+  body.querySelectorAll('.status-pill').forEach(pill=>{
+    pill.onclick = ()=> openSlideover(partners[pill.dataset.idx]);
+  });
+}
+
+let currentPartner = null;
+function openSlideover(p){
+  currentPartner = p;
+  document.getElementById('soName').textContent = p.name;
+  document.getElementById('soMeta').textContent = `${p.area}, ${selectedCity} · Tier ${p.tier}`;
+  document.getElementById('soSignal1').textContent = p.detail[0] || '';
+  document.getElementById('soSignal2').textContent = p.detail[1] || '';
+  document.getElementById('soContact').textContent = p.owner;
+  document.getElementById('soNote').value = '';
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('slideover').classList.add('show');
+}
+function closeSlideover(){
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('slideover').classList.remove('show');
+}
+document.getElementById('soClose').onclick = closeSlideover;
+document.getElementById('overlay').onclick = closeSlideover;
+
+document.getElementById('markContacted').onclick = ()=>{
+  if(currentPartner){ currentPartner.status = 'claimed'; renderTable(); }
+  showToast('Marked as claimed. Status synced to CRM.');
+  closeSlideover();
+};
+document.getElementById('markResolved').onclick = ()=>{
+  if(currentPartner){ currentPartner.status = 'resolved'; renderTable(); }
+  showToast('Marked as resolved. Status synced to CRM.');
+  closeSlideover();
+};
+document.getElementById('escalate').onclick = ()=>{
+  showToast('Escalated to city manager.');
+  closeSlideover();
+};
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+document.getElementById('howFlaggingLink').onclick = ()=>{
+  document.getElementById('frdPage').classList.add('show');
+  window.scrollTo(0,0);
+};
+document.getElementById('frdBack').onclick = ()=>{
+  document.getElementById('frdPage').classList.remove('show');
+};
+
+renderCityList();
+renderTable();
+</script>
+
+</body>
+</html>

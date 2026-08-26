@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jasmine Sahoo, Product Leader</title>
+<meta name="description" content="Jasmine Sahoo, B2C Product Leader. Fitness, mobility, safety, and commerce.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f2e7;
+    --paper-deep:#efe6d2;
+    --ink:#23201a;
+    --ink-soft:#4a4236;
+    --ink-faint:#7d7261;
+    --line:#ddd0b2;
+    --accent:#8f4f22;
+    --sage:#8f9c7c;
+    --blue:#7f97a3;
+    --blush:#c2917f;
+    --gold:#bf9a4e;
+    --serif:'EB Garamond', 'Georgia', serif;
+    --sans:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-weight:300;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    font-size:16px;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:0 32px;}
+  a{color:inherit;}
+  svg{display:block;}
+
+  /* NAV */
+  header.nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,242,231,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    max-width:880px; margin:0 auto; padding:22px 32px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .nav-mark{font-family:var(--serif); font-style:italic; font-weight:500; font-size:19px;}
+  .nav-right{display:flex; align-items:center; gap:12px;}
+  .nav-link{font-size:13px; color:var(--ink-soft); text-decoration:none;}
+  .nav-link:hover{color:var(--accent);}
+  .pill{
+    display:inline-block; padding:10px 22px; border-radius:30px;
+    font-size:13px; letter-spacing:0.3px; text-decoration:none;
+    font-family:var(--sans); font-weight:400;
+    border:1px solid var(--ink); transition:all .25s ease;
+  }
+  .pill-primary{background:var(--ink); color:var(--paper);}
+  .pill-primary:hover{background:var(--accent); border-color:var(--accent);}
+  .pill-ghost{color:var(--ink); border-color:var(--line); background:transparent;}
+  .pill-ghost:hover{border-color:var(--ink);}
+
+  /* SECTION SCAFFOLD */
+  section{padding:88px 0;}
+  section + section{border-top:1px solid var(--line);}
+  .section-label{
+    font-size:12px; letter-spacing:2.5px; text-transform:uppercase;
+    color:var(--accent); font-weight:500; margin-bottom:16px;
+  }
+  h2{
+    font-family:var(--serif); font-size:32px; font-weight:500;
+    letter-spacing:-0.3px; margin-bottom:8px;
+  }
+  .section-intro{max-width:560px;}
+
+  /* LETTER / HERO */
+  .letter{padding:120px 0 96px; border-top:none;}
+  .letter-inner{max-width:640px; margin:0 auto; text-align:center;}
+  .letter-text{
+    font-family:var(--serif); font-style:italic; font-size:23px;
+    line-height:1.65; color:var(--ink); font-weight:400;
+  }
+  .letter-text p{margin-bottom:22px;}
+  .signature{font-style:italic; font-size:23px;}
+  .letter-title{
+    margin-top:36px; font-family:var(--sans); font-style:normal;
+    font-size:14px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:400;
+  }
+  .letter-cta{display:flex; gap:14px; justify-content:center; margin-top:44px; flex-wrap:wrap;}
+
+  /* JOURNEY PATH */
+  .path-track{
+    position:relative; display:flex; justify-content:space-between;
+    gap:10px; margin-top:56px;
+  }
+  .path-track::before{
+    content:''; position:absolute; top:26px; left:25px; right:25px;
+    height:1px; background:var(--line); z-index:0;
+  }
+  .path-node{
+    position:relative; z-index:1; flex:1; text-align:center;
+    display:flex; flex-direction:column; align-items:center;
+    background:none; border:none; font-family:inherit; padding:0; cursor:pointer;
+  }
+  .node-dot{
+    width:7px; height:7px; border-radius:50%; margin-bottom:10px;
+  }
+  .node-icon{
+    width:50px; height:50px; border-radius:50%; background:var(--paper);
+    border:1px solid var(--line); display:flex; align-items:center;
+    justify-content:center; margin-bottom:12px; color:var(--ink);
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .path-node:hover .node-icon{transform:translateY(-3px); border-color:var(--accent);}
+  .path-node.active .node-icon{border-color:var(--accent); border-width:2px; background:var(--paper-deep);}
+  .node-icon svg{width:19px; height:19px;}
+  .node-year{font-size:11px; color:var(--ink-faint); letter-spacing:0.4px; margin-bottom:4px;}
+  .node-title{font-family:var(--serif); font-size:13px; line-height:1.25; color:var(--ink);}
+  .path-node.active .node-title{color:var(--accent);}
+
+  .path-detail{
+    margin-top:44px; border-top:1px solid var(--line); padding-top:36px;
+    min-height:60px;
+  }
+  .path-detail-hint{font-family:var(--serif); font-style:italic; color:var(--ink-faint); font-size:16px;}
+  .path-detail-content{display:none;}
+  .path-detail-content.show{display:block; animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  @media (max-width:760px){
+    .path-track{flex-direction:column; align-items:flex-start; gap:28px;}
+    .path-track::before{display:none;}
+    .path-node{flex-direction:row; text-align:left; gap:16px; align-items:center;}
+    .node-icon{margin-bottom:0; flex-shrink:0;}
+    .node-dot{display:none;}
+  }
+
+  /* ABOUT */
+  .about-body{max-width:640px;}
+  .about-body p{font-size:17px; color:var(--ink-soft); margin-bottom:18px; font-weight:300;}
+  .about-body em{font-style:italic; color:var(--ink); font-family:var(--serif); font-size:19px;}
+  .stat-row{display:flex; gap:0; margin-top:52px; border-top:1px solid var(--line);}
+  .stat{flex:1; padding:24px 0 0; border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat .num{font-family:var(--serif); font-size:30px; color:var(--accent); font-weight:500;}
+  .stat .label{font-size:12.5px; color:var(--ink-soft); margin-top:6px; max-width:130px;}
+
+  /* EXPERIENCE */
+  .job{padding:36px 0; border-bottom:1px solid var(--line);}
+  .job:first-child{padding-top:0;}
+  .job:last-child{border-bottom:none;}
+  .job-head{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:4px;}
+  .job-title{font-family:var(--serif); font-size:22px; font-weight:500;}
+  .job-meta{font-size:12.5px; color:var(--ink-faint); letter-spacing:0.4px; text-transform:uppercase;}
+  .job-sub{font-size:13.5px; color:var(--accent); margin-bottom:16px; font-style:italic; font-family:var(--serif);}
+  .job ul{list-style:none; margin-top:8px;}
+  .job li{
+    position:relative; padding-left:18px; margin-bottom:11px;
+    font-size:15.5px; color:var(--ink-soft); font-weight:300; max-width:680px;
+  }
+  .job li::before{content:"·"; position:absolute; left:0; color:var(--accent); font-size:20px; line-height:1;}
+
+  /* PROJECTS */
+  .projects-sub{
+    font-size:12px; letter-spacing:1.8px; text-transform:uppercase;
+    color:var(--ink-faint); margin:8px 0 22px; display:flex; justify-content:space-between; align-items:baseline;
+  }
+  .projects-sub .view-all-link{
+    font-family:var(--sans); font-size:12px; letter-spacing:0.3px; text-transform:none;
+    color:var(--accent); text-decoration:none;
+  }
+  .projects-sub .view-all-link:hover{text-decoration:underline;}
+  .highlight-scroll{
+    display:flex; gap:20px; overflow-x:auto; padding-bottom:16px; scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+  }
+  .highlight-scroll::-webkit-scrollbar{height:5px;}
+  .highlight-scroll::-webkit-scrollbar-thumb{background:var(--line); border-radius:10px;}
+  .project-card{
+    border:1px solid var(--line); padding:26px; display:flex; flex-direction:column;
+    transition:border-color .2s ease; flex:0 0 280px; scroll-snap-align:start;
+  }
+  .project-card:hover{border-color:var(--accent);}
+  .project-card.placeholder{border-style:dashed; opacity:.7;}
+  .project-eyebrow{font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:12px;}
+  .project-card.placeholder .project-eyebrow{color:var(--ink-faint);}
+  .project-title{font-family:var(--serif); font-size:19px; font-weight:500; margin-bottom:10px;}
+  .project-desc{font-size:14px; color:var(--ink-soft); line-height:1.65; flex:1; margin-bottom:14px;}
+  .project-tags{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;}
+  .ptag{font-size:10.5px; padding:4px 9px; border:1px solid var(--line); border-radius:20px; color:var(--ink-soft);}
+  .project-link{font-size:13px; color:var(--ink); text-decoration:none; display:inline-flex; align-items:center; gap:6px; width:fit-content; margin-top:auto;}
+  .project-link:hover{color:var(--accent);}
+  .project-soon{
+    font-size:11px; color:var(--ink-faint); letter-spacing:1px; text-transform:uppercase;
+    border:1px solid var(--line); border-radius:20px; padding:5px 12px; width:fit-content; margin-top:auto;
+  }
+  .view-all-card{
+    flex:0 0 200px; border:1px dashed var(--accent); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; text-decoration:none;
+    color:var(--ink); gap:10px; scroll-snap-align:start;
+  }
+  .view-all-card svg{width:22px; height:22px; color:var(--accent);}
+  .view-all-card span{font-family:var(--serif); font-size:16px;}
+  .view-all-card:hover{background:var(--paper-deep);}
+  @media (max-width:720px){ .project-card{flex-basis:250px;} }
+
+  /* PILLARS */
+  .pillar-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:40px; margin-top:52px;}
+  .pillar{text-align:left;}
+  .pillar-icon{
+    width:52px; height:52px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; margin-bottom:20px; border:1px solid var(--line);
+  }
+  .pillar-icon svg{width:22px; height:22px; color:var(--ink);}
+  .pillar h3{font-family:var(--serif); font-size:19px; font-weight:500; margin-bottom:10px;}
+  .pillar p{font-size:14.5px; color:var(--ink-soft); line-height:1.6;}
+  @media (max-width:720px){.pillar-grid{grid-template-columns:1fr; gap:36px;}}
+
+  /* TOOLKIT */
+  .tool-row{
+    display:flex; justify-content:space-between; padding:18px 0;
+    border-bottom:1px solid var(--line); gap:24px; flex-wrap:wrap;
+  }
+  .tool-row:first-child{padding-top:0;}
+  .tool-row:last-child{border-bottom:none;}
+  .tool-label{
+    font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--ink-faint); min-width:150px; flex-shrink:0; padding-top:2px;
+  }
+  .tool-items{font-size:15px; color:var(--ink-soft); flex:1; font-weight:300;}
+
+  /* BEYOND */
+  .beyond{background:var(--paper-deep);}
+  .beyond-stroke{margin-bottom:28px; color:var(--accent); width:200px; height:34px;}
+  .beyond p{font-size:17px; color:var(--ink-soft); max-width:600px; font-weight:300;}
+  .tag-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:24px;}
+  .tag{
+    font-size:12.5px; padding:7px 16px; border:1px solid var(--line);
+    border-radius:20px; color:var(--ink-soft); font-style:italic; font-family:var(--serif);
+  }
+
+  /* CONTACT */
+  .contact-inner{text-align:center; max-width:560px; margin:0 auto;}
+  .contact h2{margin-bottom:20px;}
+  .contact p{color:var(--ink-soft); font-size:17px; margin-bottom:36px; font-weight:300;}
+  .contact-links{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+
+  footer{padding:36px 0 48px; text-align:center; font-size:12.5px; color:var(--ink-faint); border-top:1px solid var(--line); letter-spacing:0.3px;}
+
+  @media (max-width:720px){
+    section{padding:64px 0;}
+    .letter{padding-top:80px;}
+    .letter-text{font-size:19px;}
+    h2{font-size:26px;}
+    .stat-row{flex-wrap:wrap;}
+    .stat{flex:0 0 50%; border-right:none; border-bottom:1px solid var(--line); padding-bottom:20px; margin-bottom:20px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="nav-mark">Jasmine Sahoo</div>
+    <div class="nav-right">
+      <a class="nav-link" href="index3.html">Play the Journey &rarr;</a>
+      <a class="pill pill-primary" href="#contact">Say Hello</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="letter" id="top">
+    <div class="wrap letter-inner">
+      <p class="section-label" style="text-align:center;">A Note, Before We Begin</p>
+      <div class="letter-text">
+        <p>Dear reader,</p>
+        <p>I build products that turn intent into habit. Not features for their own sake, but the quiet mechanics that make someone show up again tomorrow.</p>
+        <p>For a decade, I've worked at the edge of consumer behaviour and product systems: fitness, mobility, safety, commerce. Different worlds, same question underneath: why do people do what they do, and what's the smallest change that helps them do it better?</p>
+        <p>This is a short account of that work.</p>
+        <p class="signature">With intent,<br>Jasmine</p>
+      </div>
+      <div class="letter-cta">
+        <a class="pill pill-primary" href="#journey">See the Journey</a>
+        <a class="pill pill-ghost" href="#contact">Say Hello</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="journey">
+    <div class="wrap">
+      <p class="section-label">The Path So Far</p>
+      <h2>Eight chapters, one throughline.</h2>
+      <div class="path-track" id="pathTrack">
+
+        <button class="path-node" data-id="btech">
+          <div class="node-dot" style="background:var(--blue)"></div>
+          <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5-10-5z"/><path d="M6 11v4c0 1.4 2.7 3 6 3s6-1.6 6-3v-4"/></svg></div>
+          <div class="node-year">2009–13</div>
+          <div class="node-title">NIT<br>Rourkela</div>
+        </button>
+
+        <button class="path-node" data-id="foundations">
+          <div class="node-dot" style="background:var(--sage)"></div>
+          <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg></div>
+          <div class="node-year">2013–16</div>
+          <div class="node-title">LG &amp;<br>IBM</div>
+        </button>
+
+        <button class="path-node" data-id="mba">
+          <div class="node-dot" style="background:var(--gold)"></div>
+          <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5-10-5z"/><path d="M6 11v4c0 1.4 2.7 3 6 3s6-1.6 6-3v-4"/></svg></div>
+          <div class="node-year">2016–18</div>
+          <div class="node-title">IIM<br>Calcutta</div>
+        </button>
+
+        <button class="path-node" data-id="scale">
+          <div class="node-dot" style="background:var(--blue)"></div>
+          <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z"/></svg></div>
+          <div class="node-year">2018–22</div>
+          <div class="node-title">Microsoft</div>
+        </button>
+
+        <button class="path-node" data-id="speed">
+          <div class="node-dot" style="background:var(--gold)"></div>
+          <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c0-9 6-15 15-15 0 9-6 15-15 15z"/><path d="M4 20c3-3 7-6 11-9"/></svg></div>
+          <div class="node-year">2022</div>
+          <div class="node-title">Fraazo</div>
+        </button>
+
+        <button class="path-node" data-id="motion">
+          <div class="node-dot" style="background:var(--blush)"></div>
+          <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 21M16 3l4 18M12 4v2M12 9v2M12 14v2M12 19v1"/></svg></div>
+          <div class="node-year">2022–23</div>
+          <div class="node-title">redBus</div>
+        </button>
+
+        <button class="path-node" data-id="range">
+          <div class="node-dot" style="background:var(--sage)"></div>
+          <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-2 6-6 2 2-6 6-2z"/></svg></div>
+          <div class="node-year">2023–24</div>
+          <div class="node-title">Independent</div>
+        </button>
+
+        <button class="path-node" data-id="habit">
+          <div class="node-dot" style="background:var(--accent)"></div>
+          <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg></div>
+          <div class="node-year">2025–26</div>
+          <div class="node-title">FITPASS</div>
+        </button>
+
+      </div>
+
+      <div class="path-detail" id="pathDetail">
+        <p class="path-detail-hint" id="pathHint">Click any chapter above to read the story: experience and education, in order.</p>
+        <div class="path-detail-content" id="pathContent"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="wrap">
+      <p class="section-label">About</p>
+      <h2>The short version.</h2>
+      <div class="about-body" style="margin-top:28px;">
+        <p>I've spent the last decade at the intersection of consumer behaviour and product systems, most recently as <em>Lead Product Manager at FITPASS</em>, India's largest fitness network, where I built the product team and set up the agile practices that streamline how we ship. I own three domains: Customer App, Partner App, and Corporate Alliances, and I drive the full funnel from acquisition to activation, engagement, and monetisation.</p>
+        <p>My work lives in the numbers: activation rates, redemption journeys, engagement loops, retention curves. But the craft is in translating complex human behaviour into clean, scalable product decisions. Before FITPASS, I worked on quick-commerce for Tier 2/3 India at Fraazo, and on enterprise-scale consumer safety products at Microsoft. Two very different worlds that sharpened the same muscle: understanding users who don't behave the way you'd expect.</p>
+        <p>MBA, Indian Institute of Management Calcutta. B.Tech, NIT Rourkela.</p>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="num">96%</div><div class="label">Lift in attended workout sessions</div></div>
+        <div class="stat"><div class="num">19%</div><div class="label">MoM stickiness improvement</div></div>
+        <div class="stat"><div class="num">21%</div><div class="label">ARPU growth</div></div>
+        <div class="stat"><div class="num">10+</div><div class="label">Years in consumer product</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="wrap">
+      <p class="section-label">Projects</p>
+      <h2>Things I've shipped.</h2>
+
+      <p class="projects-sub">
+        <span>Highlights</span>
+        <a class="view-all-link" href="projects.html">View All Projects &rarr;</a>
+      </p>
+      <div class="highlight-scroll">
+        <div class="project-card">
+          <div class="project-eyebrow">FITPASS · AI Prototype</div>
+          <div class="project-title">Habit Economy</div>
+          <div class="project-desc">An interactive prototype of the gamified streak-and-reward system behind FITPASS's Habit Economy Challenge: leaderboards, milestones, and D7/D30/D60/D90 retention loops, built out as a working demo in Google AI Studio.</div>
+          <div class="project-tags"><span class="ptag">FITPASS</span><span class="ptag">Gamification</span><span class="ptag">Retention</span></div>
+          <a class="project-link" href="https://fp-nyc.ai.studio" target="_blank" rel="noopener">View Prototype &rarr;</a>
+        </div>
+        <div class="project-card">
+          <div class="project-eyebrow">FITPASS · Agentic AI</div>
+          <div class="project-title">Partner Churn - Early Warning System</div>
+          <div class="project-desc">An agentic system that watches partner supply, utilization, and payout signals across 150 cities, tiers partners by risk, and routes at-risk ones to city heads before they churn.</div>
+          <div class="project-tags"><span class="ptag">FITPASS</span><span class="ptag">AI/ML</span><span class="ptag">Retention</span></div>
+          <a class="project-link" href="partner-churn-early-warning.html">View Case Study &rarr;</a>
+        </div>
+        <div class="project-card placeholder">
+          <div class="project-eyebrow">Category · TBD</div>
+          <div class="project-title">Project Three</div>
+          <div class="project-desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.</div>
+          <div class="project-tags"><span class="ptag">Fraazo</span><span class="ptag">Growth</span></div>
+          <div class="project-soon">Coming Soon</div>
+        </div>
+        <a class="project-card view-all-card" href="projects.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          <span>View All<br>Projects</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="pillars">
+    <div class="wrap">
+      <p class="section-label">The Approach</p>
+      <h2>Three things I keep coming back to.</h2>
+      <div class="pillar-grid">
+        <div class="pillar">
+          <div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M6 13l6-6 6 6"/></svg></div>
+          <h3>Growth</h3>
+          <p>Funnel optimisation and acquisition experiments that compound: finding the smallest change with the largest downstream effect.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/></svg></div>
+          <h3>Engagement &amp; Retention</h3>
+          <p>Gamification, lifecycle design, and community features that turn a single visit into a returning habit.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-6M10 20v-10M16 20v-4M22 20v-14"/></svg></div>
+          <h3>Monetisation</h3>
+          <p>Upsell, cross-sell, and upgrade paths woven into the journey: revenue that feels earned, not extracted.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="wrap">
+      <p class="section-label">Toolkit</p>
+      <h2>What I work with.</h2>
+      <div style="margin-top:40px;">
+        <div class="tool-row"><div class="tool-label">Analytics</div><div class="tool-items">Amplitude, Mixpanel, Firebase, Google Analytics, Tableau</div></div>
+        <div class="tool-row"><div class="tool-label">Product &amp; Design</div><div class="tool-items">JIRA, Figma, Notion, Google Studio AI, draw.io</div></div>
+        <div class="tool-row"><div class="tool-label">CRM &amp; Marketing</div><div class="tool-items">MoEngage, Braze, MSG91, Gupshup, Karix, SendGrid</div></div>
+        <div class="tool-row"><div class="tool-label">Data</div><div class="tool-items">SQL (working knowledge), Excel / Sheets</div></div>
+        <div class="tool-row"><div class="tool-label">Platforms</div><div class="tool-items">iOS, Android, Web: cross-platform product delivery</div></div>
+        <div class="tool-row"><div class="tool-label">No-Code / AI</div><div class="tool-items">Xano, Flutter, WeWeb: rapid prototyping &amp; go-to-market</div></div>
+        <div class="tool-row"><div class="tool-label">Compliance</div><div class="tool-items">GDPR, COPPA, ABHA / National Health Data ecosystem</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="beyond" class="beyond">
+    <div class="wrap">
+      <p class="section-label">Beyond Product</p>
+      <h2>The other craft.</h2>
+      <svg class="beyond-stroke" viewBox="0 0 240 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 30C40 5 80 5 118 22C156 39 196 10 238 15"/></svg>
+      <p>Before spreadsheets and sprint boards, there was a sketchbook. For over a decade I've worked as a visual artist on the side: ink illustration, watercolour, digital art, and flatlay photography. It's the same instinct that shows up in my product work: noticing detail, composing something clean out of complexity, and caring about how things feel, not just how they function.</p>
+      <div class="tag-row">
+        <span class="tag">Ink Illustration</span>
+        <span class="tag">Watercolour Painting</span>
+        <span class="tag">Digital Art</span>
+        <span class="tag">Flatlay Photography</span>
+        <span class="tag">Storytelling</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact">
+    <div class="wrap contact-inner">
+      <p class="section-label">Get in Touch</p>
+      <h2>Let's build something people actually use.</h2>
+      <p>Open to conversations on product leadership, consumer growth, and health-tech.</p>
+      <div class="contact-links">
+        <a class="pill pill-primary" href="mailto:jasminesahoo39@gmail.com">jasminesahoo39@gmail.com</a>
+        <a class="pill pill-ghost" href="https://linkedin.com/in/jasmine-sahoo-iimc" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  &copy; 2026 Jasmine Sahoo. Bengaluru, India.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var CHAPTERS = {
+    btech: {
+      title: 'B.Tech, Electronics &amp; Instrumentation Engineering',
+      meta: 'NIT Rourkela &middot; 2009 &ndash; 2013',
+      sub: 'Education',
+      bullets: [ 'Where the engineering instinct started. Before product, before scale, just curiosity about how systems work.' ]
+    },
+    foundations: {
+      title: 'Software Engineer, LG Soft India &middot; Associate System Engineer, IBM India',
+      meta: '2013 &ndash; 2016 &middot; Bengaluru',
+      sub: 'Engineering Foundations',
+      bullets: [
+        'Automated 1,000+ test cases at LG Soft India, saving 1,400 engineering hours.',
+        'Delivered 100% defect-free QA for two Fortune 500 healthcare insurance clients at IBM.'
+      ]
+    },
+    mba: {
+      title: 'MBA',
+      meta: 'Indian Institute of Management, Calcutta &middot; 2016 &ndash; 2018',
+      sub: 'Education',
+      bullets: [ 'Two years to step back from execution and study how businesses actually decide: strategy, behaviour, and the economics behind product calls.' ]
+    },
+    scale: {
+      title: 'Product Manager II, Microsoft IDC',
+      meta: 'Apr 2018 &ndash; Jan 2022 &middot; Hyderabad',
+      sub: 'Consumer Safety &amp; Communication &middot; Windows, Xbox, iOS, Android, Web',
+      bullets: [
+        'Improved Month-1 member activation from 6% to 11% by owning onboarding for Microsoft Family Safety across all 5 platforms.',
+        'Led iOS product strategy for Family Safety, defining cross-platform architecture and child-privacy flows under GDPR and COPPA.',
+        'Shipped privacy and communication features for Kaizala and maintained executive dashboards tracking DAU, MAU, and NPS.'
+      ]
+    },
+    speed: {
+      title: 'Senior Product Manager, Fraazo',
+      meta: 'Jan 2022 &ndash; Aug 2022 &middot; Mumbai',
+      sub: 'Q-Commerce / Grocery Delivery &middot; 150 Dark Stores, 7 Cities (acquired by Instamart)',
+      bullets: [
+        'Lifted new-user conversion from 5.7% to 9.1% through homepage personalisation and funnel experiments.',
+        'Improved demand forecasting accuracy from 54% to 95%, reducing stockouts.',
+        'Built and launched a 0-to-1 workforce platform across 150 dark stores, stabilising last-mile execution.'
+      ]
+    },
+    motion: {
+      title: 'Senior Product Manager, redBus (rYde)',
+      meta: 'Sep 2022 &ndash; 2023 &middot; Bengaluru',
+      sub: 'Inter/Intra-city Travel &middot; Web &amp; App',
+      bullets: [
+        'Reduced pre-booking drop-offs by 12% by strengthening trust signals, UX clarity, and decision-support cues across the discovery-to-booking funnel.',
+        'Owned the end-to-end consumer roadmap for rYde: research, prioritisation, UX/UI, and cross-platform execution.',
+        'Designed post-booking communication journeys that reduced post-purchase anxiety and improved repeat usage.'
+      ]
+    },
+    range: {
+      title: 'Product Consultant, Independent',
+      meta: 'May 2023 &ndash; Dec 2024 &middot; Global Clients',
+      sub: 'EdTech &middot; HealthTech &middot; InsurTech &middot; LegalTech',
+      bullets: [
+        'Delivered 0-to-1 digital products for early-stage startups, cutting insurance processing time from 12 to 4 days and driving 200+ LegalTech subscriptions in month one.',
+        'Built AI-powered English-learning and gamified wellness platforms using no-code stacks (Xano, Flutter, WeWeb).'
+      ]
+    },
+    habit: {
+      title: 'Lead Product Manager, FITPASS',
+      meta: 'Mar 2025 &ndash; May 2026 &middot; Bengaluru / Delhi',
+      sub: 'Health &amp; Fitness Consumer Super-App &middot; Fitness &middot; Nutrition &middot; AI Coaching &middot; Health Data',
+      bullets: [
+        'Delivered a 96% lift in attended workout sessions through an end-to-end UX/UI overhaul of discovery, booking, and check-in journeys.',
+        'Improved MoM renewal stickiness by 19% in five months by launching the Habit Economy Challenge, a gamified streak and reward system scaling to 3,000+ monthly participants.',
+        'Drove 21% ARPU growth and a 6% revenue uplift through in-journey upsell, cross-sell, and upgrade experiences for corporate clients.',
+        'Built Multi-Player Sports Bookings from 0-to-1, and led health-tech innovation: FITCOACH AI, FITSCORE, voice-based meal logging, and ABHA health records integration.',
+        'Promoted to Lead PM in 7 months; led cross-functional execution for the flagship New Year subscription launch.'
+      ]
+    }
+  };
+
+  var nodes = document.querySelectorAll('.path-node');
+  var hint = document.getElementById('pathHint');
+  var content = document.getElementById('pathContent');
+
+  function render(id){
+    var c = CHAPTERS[id];
+    if(!c) return;
+    var listItems = c.bullets.map(function(b){ return '<li>' + b + '</li>'; }).join('');
+    content.innerHTML =
+      '<div class="job-head"><div class="job-title">' + c.title + '</div>' +
+      '<div class="job-meta">' + c.meta + '</div></div>' +
+      '<div class="job-sub">' + c.sub + '</div>' +
+      '<ul>' + listItems + '</ul>';
+    hint.style.display = 'none';
+    content.classList.add('show');
+  }
+
+  nodes.forEach(function(node){
+    node.addEventListener('click', function(){
+      nodes.forEach(function(n){ n.classList.remove('active'); });
+      node.classList.add('active');
+      render(node.dataset.id);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

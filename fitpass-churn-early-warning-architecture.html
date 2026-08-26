@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FITPASS Partner Churn Early Warning: Agent Architecture</title>
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --ivory:#efe9e2;
+    --muted:#9a948b;
+    --line: rgba(239,233,226,0.14);
+    --cream-bg:#efe9e2;
+    --cream-text:#3a352e;
+    --purple-bg:#e3dcf5;
+    --purple-text:#4b3f73;
+    --green-bg:#dcf0e6;
+    --green-text:#2e5c47;
+    --salmon-bg:#fbe4dc;
+    --salmon-text:#7a3b28;
+    --amber-bg:#f7e6c8;
+    --amber-text:#6b4d1a;
+    --blue-bg:#dbe8f5;
+    --blue-text:#2c4a68;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ivory);
+    font-family: Georgia, 'EB Garamond', serif;
+    padding:56px 24px 96px;
+  }
+  .wrap{ max-width:960px; margin:0 auto; }
+  .eyebrow{
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size:0.75rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  h1{
+    font-weight:400;
+    font-size:2rem;
+    line-height:1.28;
+    margin:0 0 18px;
+    letter-spacing:-0.01em;
+  }
+  p.lede{
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    color:var(--muted);
+    font-size:1.0rem;
+    line-height:1.6;
+    max-width:660px;
+    margin:0 0 12px;
+  }
+  .context-box{
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size:0.88rem;
+    color:var(--muted);
+    line-height:1.6;
+    border-left:2px solid var(--line);
+    padding:4px 0 4px 18px;
+    margin:24px 0 56px;
+    max-width:660px;
+  }
+  .context-box b{ color:var(--ivory); font-weight:600; }
+
+  .flow{ display:flex; flex-direction:column; align-items:center; }
+  .node{
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    border-radius:10px;
+    padding:16px 22px;
+    text-align:center;
+    min-width:260px;
+    max-width:440px;
+  }
+  .node .t{ font-weight:600; font-size:0.98rem; }
+  .node .s{ font-size:0.82rem; opacity:0.75; margin-top:3px; }
+  .cream{ background:var(--cream-bg); color:var(--cream-text); }
+  .purple{ background:var(--purple-bg); color:var(--purple-text); }
+  .green{ background:var(--green-bg); color:var(--green-text); }
+  .salmon{ background:var(--salmon-bg); color:var(--salmon-text); }
+  .amber{ background:var(--amber-bg); color:var(--amber-text); }
+  .blue{ background:var(--blue-bg); color:var(--blue-text); }
+
+  .arrow{ width:1px; height:34px; background:var(--line); position:relative; }
+  .arrow::after{
+    content:"";
+    position:absolute; bottom:-1px; left:50%; transform:translateX(-50%);
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-top:7px solid var(--line);
+  }
+  .loop-label{
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size:0.72rem;
+    color:var(--muted);
+    margin-top:-14px;
+    margin-bottom:6px;
+  }
+
+  .branch-row{
+    display:flex;
+    gap:18px;
+    justify-content:center;
+    width:100%;
+    flex-wrap:wrap;
+  }
+  .branch-col{ display:flex; flex-direction:column; align-items:center; flex:1; min-width:200px; max-width:260px; }
+
+  .connector-top{
+    display:flex; justify-content:center; width:100%; position:relative; height:34px;
+  }
+  .connector-svg{ width:100%; max-width:820px; height:34px; }
+
+  .decision-row{
+    display:flex;
+    gap:16px;
+    justify-content:center;
+    width:100%;
+  }
+  .decision-col{ display:flex; flex-direction:column; align-items:center; }
+  .decision-label{
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size:0.75rem;
+    color:var(--muted);
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+
+  .tier-strip{
+    display:flex;
+    gap:6px;
+    margin-top:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .tier-chip{
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size:0.7rem;
+    padding:3px 9px;
+    border-radius:20px;
+    border:1px solid rgba(58,53,46,0.25);
+  }
+
+  .feedback{
+    margin-top:44px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size:0.85rem;
+    color:var(--muted);
+    text-align:center;
+    max-width:580px;
+  }
+
+  .legend{
+    margin-top:64px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:22px;
+    justify-content:center;
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size:0.8rem;
+    color:var(--muted);
+  }
+  .legend-item{ display:flex; align-items:center; gap:8px; }
+  .dot{ width:10px; height:10px; border-radius:50%; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">FITPASS · Partner Product</div>
+  <h1>Partner Health & Churn<br/>Early Warning System</h1>
+  <p class="lede">An agentic system that watches partner supply, utilization, and payout signals across 12,000+ gyms, studios, and sports facilities in 150 cities, and flags at-risk partners to city heads before they go silent.</p>
+
+  <div class="context-box">
+    <b>Today:</b> FITPASS is reactive. A partner either reaches out when something's wrong, or they quietly stop listing slots and vanish with no intervention.<br/><br/>
+    <b>This system:</b> continuously scores every partner, tiers them A through E by value and demand context, and routes the ones losing health to the right city head before churn happens.
+  </div>
+
+  <div class="flow">
+
+    <div class="node cream">
+      <div class="t">Continuous Signal Monitor</div>
+      <div class="s">Slots listed · slots booked · attendance · payout per slot, by partner</div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="node purple">
+      <div class="t">Agent Orchestrator</div>
+      <div class="s">Computes health score, assigns tier, decides what needs deeper checking</div>
+    </div>
+    <div class="loop-label">↻ re-checks low-confidence signals before flagging</div>
+    <div class="arrow"></div>
+
+    <div class="connector-top">
+      <svg class="connector-svg" viewBox="0 0 820 34" preserveAspectRatio="none">
+        <path d="M410,0 L410,10 M110,10 L710,10 M110,10 L110,34 M410,10 L410,34 M710,10 L710,34"
+              fill="none" stroke="rgba(239,233,226,0.14)" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <div class="branch-row">
+      <div class="branch-col">
+        <div class="node green">
+          <div class="t">Supply & Demand Check</div>
+          <div class="s">Utilization rate vs. partner's own 3-month baseline</div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="node green">
+          <div class="t">Payout Trend Analysis</div>
+          <div class="s">Month-over-month payout, slots listed shrinking</div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="node green">
+          <div class="t">City Demand Context</div>
+          <div class="s">Is the city's demand pool also soft, or is this partner-specific</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector-top">
+      <svg class="connector-svg" viewBox="0 0 820 34" preserveAspectRatio="none">
+        <path d="M110,0 L110,24 M410,0 L410,24 M710,0 L710,24 M110,24 L710,24 M410,24 L410,34"
+              fill="none" stroke="rgba(239,233,226,0.14)" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <div class="node salmon">
+      <div class="t">Tier & Risk Verification</div>
+      <div class="s">Confirms tier (A–E) by payout-per-slot + demand density, confirms risk isn't noise</div>
+      <div class="tier-strip">
+        <span class="tier-chip">A · Premium</span>
+        <span class="tier-chip">B</span>
+        <span class="tier-chip">C</span>
+        <span class="tier-chip">D</span>
+        <span class="tier-chip">E · Entry</span>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="decision-row">
+      <div class="decision-col">
+        <div class="decision-label">At risk, confirmed</div>
+        <div class="node amber">
+          <div class="t">Route to City Head</div>
+          <div class="s">Monthly email: Tier A/B inline, Tier C–E via dashboard link</div>
+        </div>
+      </div>
+      <div class="decision-col">
+        <div class="decision-label">Stable</div>
+        <div class="node cream">
+          <div class="t">Log & Continue Monitoring</div>
+          <div class="s">Updates baseline, no action needed this cycle</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="node blue">
+      <div class="t">Dashboard + CRM Sync</div>
+      <div class="s">City head claims partner, logs outreach, status mirrors to CRM for manager visibility</div>
+    </div>
+
+    <div class="feedback">
+      Next cycle's before/after analysis checks whether contacted partners recovered, which feeds back into how the health score weighs each signal. The system gets sharper at predicting real churn instead of flagging every dip.
+    </div>
+
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="dot" style="background:var(--cream-bg)"></span>Input / monitoring</div>
+    <div class="legend-item"><span class="dot" style="background:var(--purple-bg)"></span>Orchestration</div>
+    <div class="legend-item"><span class="dot" style="background:var(--green-bg)"></span>Signal checks</div>
+    <div class="legend-item"><span class="dot" style="background:var(--salmon-bg)"></span>Verification & tiering</div>
+    <div class="legend-item"><span class="dot" style="background:var(--amber-bg)"></span>Action & routing</div>
+    <div class="legend-item"><span class="dot" style="background:var(--blue-bg)"></span>Interface / system of record</div>
+  </div>
+</div>
+</body>
+</html>
